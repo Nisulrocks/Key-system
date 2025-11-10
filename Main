@@ -328,7 +328,7 @@ local function ValidateKey()
         -- Discord Button Click
         DiscordButton.MouseButton1Click:Connect(function()
             if CopyToClipboard(KeySystemConfig.DiscordLink) then
-                StatusLabel.Text = "✓ Discord link copied to clipboard!"
+                StatusLabel.Text = "Discord link copied to clipboard!"
                 StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
                 ShowNotification("Discord Link Copied", "Paste it in your browser to join!", 5)
             else
@@ -355,7 +355,7 @@ local function ValidateKey()
             
             if enteredKey == KeySystemConfig.CorrectKey then
                 keyValidated = true
-                StatusLabel.Text = "✓ Key validated! Loading script..."
+                StatusLabel.Text = "Key validated! Loading script..."
                 StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
                 
                 -- Save the key for future use
