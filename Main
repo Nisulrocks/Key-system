@@ -13,6 +13,29 @@ local KeySystemConfig = {
     KeyPlaceholder = "Enter Key Here...",
 }
 
+-- Key Storage Functions
+local function GetStoredKey()
+    local success, result = pcall(function()
+        return readfile("key_storage.txt")
+    end)
+    if success then
+        return result
+    end
+    return nil
+end
+
+local function SaveKey(key)
+    pcall(function()
+        writefile("key_storage.txt", key)
+    end)
+end
+
+local function ClearStoredKey()
+    pcall(function()
+        delfile("key_storage.txt")
+    end)
+end
+
 -- Key System GUI
 local function CreateKeyGUI()
     local ScreenGui = Instance.new("ScreenGui")
@@ -40,7 +63,7 @@ local function CreateKeyGUI()
     Stroke.Thickness = 2
     Stroke.Parent = MainFrame
     
-    -- Title Bar
+    -- Title Bar (Draggable)
     local TitleBar = Instance.new("Frame")
     TitleBar.Name = "TitleBar"
     TitleBar.Size = UDim2.new(1, 0, 0, 50)
@@ -51,6 +74,42 @@ local function CreateKeyGUI()
     local TitleCorner = Instance.new("UICorner")
     TitleCorner.CornerRadius = UDim.new(0, 12)
     TitleCorner.Parent = TitleBar
+    
+    -- Make GUI Draggable
+    local dragging = false
+    local dragInput, mousePos, framePos
+    
+    TitleBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            mousePos = input.Position
+            framePos = MainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    TitleBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - mousePos
+            MainFrame.Position = UDim2.new(
+                framePos.X.Scale,
+                framePos.X.Offset + delta.X,
+                framePos.Y.Scale,
+                framePos.Y.Offset + delta.Y
+            )
+        end
+    end)
     
     -- Title Text
     local TitleLabel = Instance.new("TextLabel")
@@ -247,6 +306,19 @@ local function ValidateKey()
         local LocalPlayer = Players.LocalPlayer
         local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
         
+        -- Check if stored key is valid
+        local storedKey = GetStoredKey()
+        if storedKey and storedKey == KeySystemConfig.CorrectKey then
+            -- Key is valid and hasn't changed, auto-validate
+            ShowNotification("Key Validated", "Welcome back! Loading script...", 3)
+            task.wait(0.5)
+            resolve(true)
+            return
+        elseif storedKey and storedKey ~= KeySystemConfig.CorrectKey then
+            -- Key has changed, clear old key
+            ClearStoredKey()
+        end
+        
         -- Create GUI
         local ScreenGui, KeyBox, SubmitButton, DiscordButton, StatusLabel = CreateKeyGUI()
         ScreenGui.Parent = PlayerGui
@@ -283,8 +355,11 @@ local function ValidateKey()
             
             if enteredKey == KeySystemConfig.CorrectKey then
                 keyValidated = true
-                StatusLabel.Text = "Key validated! Loading script..."
+                StatusLabel.Text = "✓ Key validated! Loading script..."
                 StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                
+                -- Save the key for future use
+                SaveKey(enteredKey)
                 
                 ShowNotification("Key Accepted", "Loading " .. KeySystemConfig.ScriptName .. "...", 3)
                 
