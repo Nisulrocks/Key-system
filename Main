@@ -15,8 +15,10 @@ local KeySystemConfig = {
 
 -- Key Storage Functions
 local function GetKeyFileName()
-    -- Create unique filename based on script name to avoid conflicts
-    local safeName = KeySystemConfig.ScriptName:gsub("[^%w]", "_") -- Replace non-alphanumeric with underscore
+    -- Use a stable StorageId if provided; otherwise fall back to ScriptName
+    local base = KeySystemConfig.StorageId or KeySystemConfig.ScriptName
+    base = tostring(base)
+    local safeName = base:gsub("[^%w]", "_") -- Replace non-alphanumeric with underscore
     return safeName .. "_key.txt"
 end
 
