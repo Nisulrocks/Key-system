@@ -121,7 +121,8 @@ local function CreateKeyGUI()
 	-- Determine target size based on current screen (mobile-friendly scaling)
 	local viewportSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
 	local targetWidth = math.clamp(viewportSize.X * 0.6, 320, 520)
-	local targetHeight = math.clamp(viewportSize.Y * 0.3, 180, 260)
+	-- Slightly taller minimum height so buttons don’t clip into input on small mobile screens
+	local targetHeight = math.clamp(viewportSize.Y * 0.3, 220, 260)
 
 	-- Main Window (Started Small for Animation)
 	MainCanvas = Instance.new("Frame")
@@ -413,15 +414,20 @@ local function ValidateKey()
 				local enteredKey = KeyBox.Text
 				
 				if enteredKey == "" then
-					StatusLabel.Text = "⚠ Please enter a key"
+					StatusLabel.Text = "Enter a key!"
 					StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
 					return
 				end
 				
 				if enteredKey == KeySystemConfig.CorrectKey then
 					keyValidated = true
-					StatusLabel.Text = "✓ Key validated! Loading script..."
+					StatusLabel.Text = "Access Granted! Loading script..."
 					StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+					
+					-- Turn outline green, matching standalone behavior
+					if UIStrokeRef then
+						TweenService:Create(UIStrokeRef, TweenInfo.new(0.5), { Color = Colors.NeonGreen }):Play()
+					end
 					
 					-- Save the key for future use
 					local saveSuccess = SaveKey(enteredKey)
@@ -484,7 +490,7 @@ local function ValidateKey()
 					ScreenGui:Destroy()
 					resolve(true)
 				else
-					StatusLabel.Text = "Invalid key! Get the key from Discord."
+					StatusLabel.Text = "Access Denied! Get the key from Discord."
 					StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
 					KeyBox.Text = ""
 					
